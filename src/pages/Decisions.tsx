@@ -14,7 +14,7 @@ export function Decisions() {
 
   const handleAdd = () => {
     if (!form.title) return;
-    dispatch({ type: 'ADD_DECISION', payload: { ...form } });
+    dispatch({ type: 'ADD_DECISION', payload: { ...form, createdAt: new Date().toISOString() } });
     setForm({ title: '', whatDeciding: '', whatWouldChange: '', whatToTest: '', reversible: true, deadline: '', defaultChoice: '', status: 'open' });
     setShowForm(false);
   };

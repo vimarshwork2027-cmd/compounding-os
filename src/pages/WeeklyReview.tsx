@@ -57,7 +57,7 @@ export function WeeklyReview() {
                 <span style={{ fontSize: '0.875rem', color: row.highlight ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: row.highlight ? 600 : 400 }}>
                   {row.label}
                 </span>
-                <div style={{ display: 'flex', align: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {row.prev !== undefined && (
                     <span style={{ fontSize: '0.75rem', color: row.value > row.prev ? 'var(--green)' : row.value < row.prev ? 'var(--red)' : 'var(--text-muted)' }}>
                       {row.value > row.prev ? '↑' : row.value < row.prev ? '↓' : '—'}
