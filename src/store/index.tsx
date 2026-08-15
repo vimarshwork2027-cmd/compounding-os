@@ -49,6 +49,7 @@ type Action =
   | { type: 'UPDATE_TW_FEATURE'; payload: ThisWeekendFeature }
   | { type: 'SET_AI_KEY'; payload: string }
   | { type: 'UPDATE_PROFILE_NAME'; payload: string }
+  | { type: 'SET_OLLAMA_MODEL'; payload: string }
   | { type: 'COMPLETE_CURRICULUM_STEP'; payload: string }
   | { type: 'ADD_LEARNING_RESOURCE'; payload: LearningResource }
   | { type: 'LOAD_DEMO_DATA' }
@@ -214,6 +215,9 @@ function reducer(state: AppStore, action: Action): AppStore {
 
     case 'UPDATE_PROFILE_NAME':
       return { ...state, profile: { ...state.profile, name: action.payload } };
+
+    case 'SET_OLLAMA_MODEL':
+      return { ...state, ollamaModel: action.payload };
 
     case 'COMPLETE_CURRICULUM_STEP': {
       if (!state.dailyCurriculum) return state;

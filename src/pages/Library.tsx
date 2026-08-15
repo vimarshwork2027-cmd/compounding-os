@@ -17,7 +17,7 @@ export function Library() {
     setError('');
     
     try {
-      const resource = await processContentUrl(url);
+      const resource = await processContentUrl(url, store.ollamaModel || 'llama3');
       dispatch({ type: 'ADD_LEARNING_RESOURCE', payload: resource });
       setUrl('');
     } catch (err: any) {

@@ -233,6 +233,7 @@ export const DEFAULT_STORE: AppStore = {
   thisWeekendFeatures: [],
   dailyChallenge: null,
   aiApiKey: '',
+  ollamaModel: 'llama3',
   library: [],
   seasons: [],
   dailyCurriculum: null,

@@ -265,6 +265,7 @@ export interface AppStore {
   thisWeekendFeatures: ThisWeekendFeature[];
   dailyChallenge: DailyBoringChallenge | null;
   aiApiKey: string;
+  ollamaModel: string; // e.g. 'llama3', 'gemma3', 'mistral'
   // V2 Additions
   library: LearningResource[];
   seasons: Season[];

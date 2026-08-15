@@ -7,11 +7,13 @@ export function Settings() {
   const dispatch = useDispatch();
   const [apiKey, setApiKey] = useState(store.aiApiKey);
   const [name, setName] = useState(store.profile.name);
+  const [ollamaModel, setOllamaModel] = useState(store.ollamaModel || 'llama3');
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
     dispatch({ type: 'SET_AI_KEY', payload: apiKey });
     dispatch({ type: 'UPDATE_PROFILE_NAME', payload: name });
+    dispatch({ type: 'SET_OLLAMA_MODEL', payload: ollamaModel });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -67,28 +69,40 @@ export function Settings() {
           </div>
         </div>
 
-        {/* AI Coach */}
+        {/* AI Coach — Ollama */}
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <Key size={16} color="var(--accent-light)" />
-            <h3>AI Coach API Key</h3>
+            <h3>Ollama Model</h3>
           </div>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: 16 }}>
-            Add your OpenAI API key to enable the AI Coach. Your key is stored locally in your browser.
+            The AI Coach and Content Library run on your local Ollama instance. Choose the model you want to use.
+            Make sure it's pulled and Ollama is running with <code style={{ background: 'var(--bg-elevated)', padding: '1px 6px', borderRadius: 4, fontSize: '0.8em' }}>OLLAMA_ORIGINS="*" ollama serve</code>.
           </p>
           <div className="form-group">
-            <label className="form-label">OpenAI API Key</label>
+            <label className="form-label">Model Name</label>
             <input
               className="input"
-              type="password"
-              placeholder="sk-..."
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
+              placeholder="e.g. gemma3, llama3, mistral"
+              value={ollamaModel}
+              onChange={e => setOllamaModel(e.target.value)}
             />
           </div>
-          <div style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Get your key at <a href="https://platform.openai.com" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-light)' }}>platform.openai.com</a>.
-            The coach uses gpt-4o-mini by default.
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+            {['llama3', 'gemma3', 'mistral', 'phi4', 'llama3:8b'].map(m => (
+              <button
+                key={m}
+                onClick={() => setOllamaModel(m)}
+                className="btn btn-secondary btn-sm"
+                style={{ background: ollamaModel === m ? 'var(--accent-glow)' : undefined, color: ollamaModel === m ? 'var(--accent-light)' : undefined }}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            Pull any model with: <code style={{ background: 'var(--bg-elevated)', padding: '1px 6px', borderRadius: 4 }}>ollama pull gemma3</code>
+            &nbsp;| Browse models at <a href="https://ollama.com/library" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-light)' }}>ollama.com/library</a>
           </div>
         </div>
 

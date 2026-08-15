@@ -66,7 +66,7 @@ User context:
         userMsg,
       ];
 
-      const reply = await chatWithOllama(allMessages);
+      const reply = await chatWithOllama(allMessages, store.ollamaModel || 'llama3');
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (err: any) {
       setMessages(prev => [...prev, { role: 'assistant', content: err.message || 'Error connecting to Ollama.' }]);
