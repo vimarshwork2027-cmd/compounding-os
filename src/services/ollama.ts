@@ -76,3 +76,36 @@ Ensure the output is ONLY valid JSON.
     throw new Error("Failed to process content with Ollama. Make sure Ollama is running and OLLAMA_ORIGINS='*' is set.");
   }
 }
+
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export async function chatWithOllama(messages: ChatMessage[], model: string = DEFAULT_MODEL): Promise<string> {
+  const OLLAMA_CHAT_URL = 'http://localhost:11434/api/chat';
+  
+  try {
+    const response = await fetch(OLLAMA_CHAT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.message?.content || '';
+  } catch (error) {
+    console.error("Error communicating with Ollama chat API:", error);
+    throw new Error("Failed to connect to Ollama. Ensure it's running locally with CORS enabled.");
+  }
+}

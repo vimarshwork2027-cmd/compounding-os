@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Send, Bot } from 'lucide-react';
 import { useStore } from '../store';
+import { chatWithOllama } from '../services/ollama';
+import type { ChatMessage } from '../services/ollama';
 
 const MODES = [
   { key: 'morning', label: 'Morning Coach', prompt: 'What is the highest-leverage thing I should do today?', emoji: '🌅' },
@@ -11,21 +13,21 @@ const MODES = [
   { key: 'career', label: 'Career Coach', prompt: 'Look at my evidence and tell me what is missing for a strong product designer portfolio.', emoji: '💼' },
 ];
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+// Re-use ChatMessage from ollama.ts
 
 export function AICoach() {
   const { store } = useStore();
   const [selectedMode, setSelectedMode] = useState(MODES[0]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
 
   const buildContext = () => {
     const last7 = store.activities.filter(a => (Date.now() - new Date(a.timestamp).getTime()) < 7 * 86400000);
     const weaknesses = store.weaknesses.filter(w => !w.dismissed).map(w => w.evidence).join('; ');
+    const activeSeason = store.seasons[0];
+    const todayCurriculum = store.dailyCurriculum;
+    
     return `
 You are an AI coach for a product designer who wants to become world-class and eventually a founder.
 Your role is to: Diagnose, Challenge, Prioritize, Reflect, Explain patterns, Recommend experiments.
@@ -42,45 +44,32 @@ User context:
 - Active weaknesses: ${weaknesses || 'None detected yet'}
 - Primary goal: ${store.profile.primaryGoal}
 - ThisWeekend features: ${store.thisWeekendFeatures.length} (${store.thisWeekendFeatures.filter(f => ['shipped', 'measured', 'learned'].includes(f.status)).length} shipped)
+- Active Season: ${activeSeason ? `${activeSeason.title}` : 'None'}
+- Today's Curriculum Objective: ${todayCurriculum?.objective || 'None'}
 - Mode: ${selectedMode.label}
     `.trim();
   };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-    if (!store.aiApiKey) {
-      setMessages(prev => [...prev, { role: 'user', content: input }, {
-        role: 'assistant',
-        content: `I need an API key to function. Go to Settings and add your OpenAI API key.\n\nIn the meantime, here's what your data tells me:\n\n${generateOfflineInsight(store)}`,
-      }]);
-      setInput('');
-      return;
-    }
 
-    const userMsg: Message = { role: 'user', content: input };
+    const userMsg: ChatMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     try {
       const systemPrompt = buildContext();
-      const allMessages = [
+      const allMessages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: input },
+        ...messages,
+        userMsg,
       ];
 
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${store.aiApiKey}` },
-        body: JSON.stringify({ model: 'gpt-4o-mini', messages: allMessages, max_tokens: 500 }),
-      });
-
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content ?? 'No response received.';
+      const reply = await chatWithOllama(allMessages);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Error connecting to OpenAI. Check your API key in Settings.' }]);
+    } catch (err: any) {
+      setMessages(prev => [...prev, { role: 'assistant', content: err.message || 'Error connecting to Ollama.' }]);
     } finally {
       setLoading(false);
     }
@@ -97,15 +86,6 @@ User context:
         <h1 className="page-title">AI Coach</h1>
         <p className="page-subtitle">Diagnose. Challenge. Prioritize. No cheerleading.</p>
       </div>
-
-      {!store.aiApiKey && (
-        <div className="card card-warning" style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: '0.875rem', color: 'var(--amber)' }}>
-            <strong>No API key set.</strong> The coach will work in offline mode with behavioral analysis from your data.
-            Add an OpenAI API key in <a href="/settings" style={{ color: 'var(--accent-light)' }}>Settings</a> for full AI capabilities.
-          </div>
-        </div>
-      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 24 }}>
         {/* Mode selector */}
