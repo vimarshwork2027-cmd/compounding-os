@@ -44,6 +44,7 @@ export type Action =
   | { type: 'LOAD_DEMO_DATA' }
   | { type: 'RESET_STORE' }
   | { type: 'COMPLETE_CURRICULUM_STEP'; payload: string }
+  | { type: 'ADD_LEARNING_RESOURCE'; payload: LearningResource };
 
 export interface Activity {
   id: string;

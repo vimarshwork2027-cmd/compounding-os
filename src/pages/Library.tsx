@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore, useDispatch } from '../store';
+import { processContentUrl } from '../services/ollama';
 import { Book, Video, Play, FileText, CheckCircle2, Clock, Plus, Brain, Rocket } from 'lucide-react';
 import { SKILL_LABELS } from '../data/engine';
 
@@ -7,11 +8,23 @@ export function Library() {
   const { store } = useStore();
   const dispatch = useDispatch();
   const [url, setUrl] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!url) return;
-    setUrl('');
-    alert("In a real app, this would fetch metadata, extract concepts, and generate an application task via AI.");
+    setIsProcessing(true);
+    setError('');
+    
+    try {
+      const resource = await processContentUrl(url);
+      dispatch({ type: 'ADD_LEARNING_RESOURCE', payload: resource });
+      setUrl('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to process content');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const getTypeIcon = (type: string) => {
@@ -55,11 +68,17 @@ export function Library() {
             placeholder="e.g. https://youtube.com/watch?v=..."
             value={url}
             onChange={e => setUrl(e.target.value)}
+            disabled={isProcessing}
           />
-          <button className="btn btn-primary" onClick={handleAdd}>
-            <Plus size={16} /> Process Content
+          <button className="btn btn-primary" onClick={handleAdd} disabled={isProcessing || !url}>
+            {isProcessing ? 'Processing...' : <><Plus size={16} /> Process Content</>}
           </button>
         </div>
+        {error && (
+          <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(252,129,129,0.1)', color: '#FC8181', fontSize: '0.8125rem', borderRadius: 4 }}>
+            {error}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

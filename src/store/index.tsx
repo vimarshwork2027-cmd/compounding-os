@@ -50,6 +50,7 @@ type Action =
   | { type: 'SET_AI_KEY'; payload: string }
   | { type: 'UPDATE_PROFILE_NAME'; payload: string }
   | { type: 'COMPLETE_CURRICULUM_STEP'; payload: string }
+  | { type: 'ADD_LEARNING_RESOURCE'; payload: LearningResource }
   | { type: 'LOAD_DEMO_DATA' }
   | { type: 'RESET_STORE' };
 
@@ -224,6 +225,13 @@ function reducer(state: AppStore, action: Action): AppStore {
             s.id === action.payload ? { ...s, completed: true } : s
           )
         }
+      };
+    }
+
+    case 'ADD_LEARNING_RESOURCE': {
+      return {
+        ...state,
+        library: [action.payload, ...(state.library || [])]
       };
     }
 
