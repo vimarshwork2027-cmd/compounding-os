@@ -4,6 +4,73 @@ import { useStore } from '../store';
 import { chatWithOllama } from '../services/ollama';
 import type { ChatMessage } from '../services/ollama';
 
+// Simple markdown renderer for AI responses
+function renderMarkdown(text: string) {
+  const lines = text.split('\n');
+  const result: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Skip empty lines (add spacing)
+    if (line.trim() === '') {
+      result.push(<div key={i} style={{ height: 8 }} />);
+      i++;
+      continue;
+    }
+
+    // Bullet points: lines starting with * or -
+    if (/^[\*\-]\s+/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^[\*\-]\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^[\*\-]\s+/, ''));
+        i++;
+      }
+      result.push(
+        <ul key={i} style={{ margin: '4px 0', paddingLeft: 18 }}>
+          {items.map((item, j) => (
+            <li key={j} style={{ marginBottom: 4 }} dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    // Numbered list: lines starting with 1. 2. etc.
+    if (/^\d+\.\s+/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s+/, ''));
+        i++;
+      }
+      result.push(
+        <ol key={i} style={{ margin: '4px 0', paddingLeft: 18 }}>
+          {items.map((item, j) => (
+            <li key={j} style={{ marginBottom: 4 }} dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+          ))}
+        </ol>
+      );
+      continue;
+    }
+
+    // Normal paragraph
+    result.push(
+      <p key={i} style={{ margin: '4px 0' }} dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
+    );
+    i++;
+  }
+
+  return result;
+}
+
+function formatInline(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(124,58,237,0.15);padding:1px 5px;border-radius:3px;font-size:0.85em">$1</code>');
+}
+
 const MODES = [
   { key: 'morning', label: 'Morning Coach', prompt: 'What is the highest-leverage thing I should do today?', emoji: '🌅' },
   { key: 'interview', label: 'Interview Coach', prompt: 'Ask me a product design interview question and coach my answer.', emoji: '🎤' },
@@ -144,9 +211,9 @@ User context:
                   background: msg.role === 'user' ? 'var(--accent)' : 'var(--bg-elevated)',
                   borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
                   fontSize: '0.9rem', color: msg.role === 'user' ? 'white' : 'var(--text-secondary)',
-                  lineHeight: 1.65, whiteSpace: 'pre-wrap',
+                  lineHeight: 1.65,
                 }}>
-                  {msg.content}
+                  {msg.role === 'assistant' ? renderMarkdown(msg.content) : msg.content}
                 </div>
               </div>
             ))}

@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Zap, Eye, GitBranch, Archive, Mic2,
   Dumbbell, Brain, Briefcase, Users2, Lightbulb,
   GitFork, Timer, Telescope, BarChart2, RefreshCw,
-  AlertTriangle, Settings, Target, FlameKindling, BookOpen, Star
+  AlertTriangle, Settings, Target, FlameKindling, BookOpen, Star, Bot, FolderKanban
 } from 'lucide-react';
 import { useStore } from '../store';
 import { getLevelInfo } from '../data/engine';
@@ -48,7 +48,7 @@ const NAV = [
     items: [
       { to: '/career', label: 'Career Funnel', icon: Briefcase },
       { to: '/network', label: 'Network', icon: Users2 },
-      { to: '/portfolio', label: 'Portfolio', icon: BookOpen },
+      { to: '/portfolio', label: 'Portfolio', icon: FolderKanban },
     ],
   },
   {
@@ -62,6 +62,7 @@ const NAV = [
   {
     section: 'SYSTEM',
     items: [
+      { to: '/coach', label: 'AI Coach', icon: Bot },
       { to: '/settings', label: 'Settings', icon: Settings },
     ],
   }
