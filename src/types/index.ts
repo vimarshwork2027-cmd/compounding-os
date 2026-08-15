@@ -39,6 +39,12 @@ export interface Evidence {
   metric?: string;
 }
 
+export type Action = 
+  | { type: 'SET_API_KEY'; payload: string }
+  | { type: 'LOAD_DEMO_DATA' }
+  | { type: 'RESET_STORE' }
+  | { type: 'COMPLETE_CURRICULUM_STEP'; payload: string }
+
 export interface Activity {
   id: string;
   type: ActionType;
@@ -258,4 +264,67 @@ export interface AppStore {
   thisWeekendFeatures: ThisWeekendFeature[];
   dailyChallenge: DailyBoringChallenge | null;
   aiApiKey: string;
+  // V2 Additions
+  library: LearningResource[];
+  seasons: Season[];
+  dailyCurriculum: DailyCurriculum | null;
+}
+
+// ─── Curriculum & Learning ───────────────────────────────────────────────────
+
+export interface Concept {
+  id: string;
+  title: string;
+  mastered: boolean;
+}
+
+export interface LearningResource {
+  id: string;
+  type: 'book' | 'video' | 'article' | 'podcast' | 'case_study';
+  title: string;
+  source: string; // URL or author
+  skills: SkillKey[];
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  timeEstimate: string; // e.g., '4h 30m' or '18 min'
+  whyThis: string;
+  applicationTask: string;
+  concepts: Concept[];
+  progress: number; // 0-100
+  status: 'queue' | 'in_progress' | 'completed';
+}
+
+export interface CurriculumStep {
+  id: string;
+  phase: 'LEARN' | 'EXTRACT' | 'APPLY' | 'SHIP';
+  icon: string;
+  timeEstimate: string;
+  title: string;
+  description: string;
+  why?: string;
+  xpReward: number;
+  completed: boolean;
+}
+
+export interface DailyCurriculum {
+  date: string;
+  objective: string;
+  steps: CurriculumStep[];
+}
+
+// ─── Seasons ─────────────────────────────────────────────────────────────────
+
+export interface SeasonTarget {
+  id: string;
+  metric: string; // e.g. "product teardowns"
+  target: number;
+  current: number;
+}
+
+export interface Season {
+  id: string;
+  number: number;
+  title: string;
+  durationDays: number;
+  startDate: string;
+  goals: SeasonTarget[];
 }

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import type { AppStore, Activity, EvidenceCard, Goal, ParkingLotIdea, Decision, NetworkContact, JobApplication, InterviewSession, CommunicationSession, ProductGymSession, BoringSession, FailureLog, ThisWeekendFeature, SkillKey } from '../types';
+import type { AppStore, Activity, EvidenceCard, Goal, ParkingLotIdea, Decision, NetworkContact, JobApplication, InterviewSession, CommunicationSession, ProductGymSession, BoringSession, FailureLog, ThisWeekendFeature, SkillKey, LearningResource, Season, DailyCurriculum } from '../types';
 import { DEFAULT_STORE, detectWeaknesses, calculateCompoundingScore, getDailyChallenge, SKILL_CATEGORIES } from '../data/engine';
 
 const STORAGE_KEY = 'compounding_os_v1';
@@ -49,6 +49,7 @@ type Action =
   | { type: 'UPDATE_TW_FEATURE'; payload: ThisWeekendFeature }
   | { type: 'SET_AI_KEY'; payload: string }
   | { type: 'UPDATE_PROFILE_NAME'; payload: string }
+  | { type: 'COMPLETE_CURRICULUM_STEP'; payload: string }
   | { type: 'LOAD_DEMO_DATA' }
   | { type: 'RESET_STORE' };
 
@@ -213,6 +214,19 @@ function reducer(state: AppStore, action: Action): AppStore {
     case 'UPDATE_PROFILE_NAME':
       return { ...state, profile: { ...state.profile, name: action.payload } };
 
+    case 'COMPLETE_CURRICULUM_STEP': {
+      if (!state.dailyCurriculum) return state;
+      return {
+        ...state,
+        dailyCurriculum: {
+          ...state.dailyCurriculum,
+          steps: state.dailyCurriculum.steps.map(s => 
+            s.id === action.payload ? { ...s, completed: true } : s
+          )
+        }
+      };
+    }
+
     case 'LOAD_DEMO_DATA':
       return loadDemoData(state);
 
@@ -287,8 +301,109 @@ function loadDemoData(state: AppStore): AppStore {
     },
   ];
 
+  const library: LearningResource[] = [
+    {
+      id: 'l1',
+      type: 'book',
+      title: 'Hooked',
+      source: 'Nir Eyal',
+      skills: ['retention', 'product_strategy'],
+      difficulty: 'Intermediate',
+      timeEstimate: '4h 30m',
+      whyThis: 'You are currently working on ThisWeekend retention.',
+      applicationTask: 'Analyze ThisWeekend using the Hook Model.',
+      concepts: [
+        { id: 'c1', title: 'Trigger', mastered: true },
+        { id: 'c2', title: 'Action', mastered: true },
+        { id: 'c3', title: 'Variable reward', mastered: true },
+        { id: 'c4', title: 'Investment', mastered: false },
+        { id: 'c5', title: 'Habit loops', mastered: false },
+      ],
+      progress: 60,
+      status: 'in_progress'
+    },
+    {
+      id: 'l2',
+      type: 'video',
+      title: 'How to tell better product stories',
+      source: 'YouTube',
+      skills: ['storytelling', 'presenting'],
+      difficulty: 'Beginner',
+      timeEstimate: '18 min',
+      whyThis: 'Your recent interview scores show storytelling is one of your weakest areas.',
+      applicationTask: 'Re-record your ThisWeekend case study using the storytelling framework.',
+      concepts: [],
+      progress: 0,
+      status: 'queue'
+    }
+  ];
+
+  const seasons: Season[] = [
+    {
+      id: 's1',
+      number: 1,
+      title: 'Become a Strong Product Designer',
+      durationDays: 90,
+      startDate: new Date(now - day * 17).toISOString(),
+      goals: [
+        { id: 'sg1', metric: 'product teardowns', target: 30, current: 4 },
+        { id: 'sg2', metric: 'interview recordings', target: 20, current: 2 },
+        { id: 'sg3', metric: 'user interviews', target: 10, current: 3 },
+        { id: 'sg4', metric: 'experiments', target: 3, current: 1 },
+      ]
+    }
+  ];
+
+  const dailyCurriculum: DailyCurriculum = {
+    date: new Date().toISOString().slice(0, 10),
+    objective: 'Improve product storytelling.',
+    steps: [
+      {
+        id: 'step1',
+        phase: 'LEARN',
+        icon: '📺',
+        timeEstimate: '18 min',
+        title: 'Watch: How to tell better product stories',
+        why: 'Your recent interview scores show storytelling is one of your weakest areas.',
+        description: 'Watch the video from the library.',
+        xpReward: 5,
+        completed: false
+      },
+      {
+        id: 'step2',
+        phase: 'EXTRACT',
+        icon: '🧠',
+        timeEstimate: '5 min',
+        title: 'Write the 3 most useful ideas from the video.',
+        description: 'Extract concepts into your mind.',
+        xpReward: 5,
+        completed: false
+      },
+      {
+        id: 'step3',
+        phase: 'APPLY',
+        icon: '🎤',
+        timeEstimate: '10 min',
+        title: 'Re-record your ThisWeekend case study',
+        description: 'Use the storytelling framework you just learned.',
+        xpReward: 15,
+        completed: false
+      },
+      {
+        id: 'step4',
+        phase: 'SHIP',
+        icon: '🚀',
+        timeEstimate: '30 min',
+        title: 'Publish your revised case study section.',
+        description: 'Put it in your public portfolio.',
+        xpReward: 30,
+        completed: false
+      }
+    ]
+  };
+
   // Apply activities to build skill scores
-  let newState = { ...state, activities: [...activities, ...state.activities], evidenceCards: [...evidenceCards, ...state.evidenceCards] };
+  let newState = { ...state, activities: [...activities, ...state.activities], evidenceCards: [...evidenceCards, ...state.evidenceCards], library, seasons, dailyCurriculum };
   activities.forEach(a => {
     newState.skillScores = updateSkillScores(newState, a.skills, a.xp, a.id);
     newState.profile.totalXP += a.xp;

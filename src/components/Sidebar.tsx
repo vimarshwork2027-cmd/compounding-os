@@ -10,60 +10,61 @@ import { getLevelInfo } from '../data/engine';
 
 const NAV = [
   {
-    section: 'Core',
+    section: 'COMMAND',
     items: [
-      { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-      { to: '/log', label: 'Log Activity', icon: Zap },
+      { to: '/', label: 'Today', icon: LayoutDashboard },
+      { to: '/review', label: 'Progress', icon: BarChart2 },
       { to: '/mirror', label: 'The Mirror', icon: Eye },
     ],
   },
   {
-    section: 'Train',
+    section: 'LEARN',
+    items: [
+      { to: '/learn', label: 'Learning Path', icon: Target },
+      { to: '/library', label: 'Library', icon: BookOpen },
+      { to: '/seasons', label: 'Seasons', icon: RefreshCw }, // adding seasons here as part of learning
+    ],
+  },
+  {
+    section: 'TRAIN',
     items: [
       { to: '/skills', label: 'Skill Tree', icon: GitBranch },
-      { to: '/interview', label: 'Interview Mode', icon: Mic2 },
-      { to: '/communication', label: 'Comm. Gym', icon: Brain },
       { to: '/product-gym', label: 'Product Gym', icon: Dumbbell },
+      { to: '/communication', label: 'Comm. Gym', icon: Brain },
+      { to: '/interview', label: 'Interview Mode', icon: Mic2 },
       { to: '/boring-mode', label: 'Boring Mode', icon: Timer },
     ],
   },
   {
-    section: 'Build',
+    section: 'BUILD',
     items: [
       { to: '/thisweekend', label: 'ThisWeekend', icon: Star },
+      { to: '/projects', label: 'Projects', icon: Lightbulb }, // replacing ideas with projects
       { to: '/evidence', label: 'Evidence Vault', icon: Archive },
     ],
   },
   {
-    section: 'Career',
+    section: 'CAREER',
     items: [
       { to: '/career', label: 'Career Funnel', icon: Briefcase },
       { to: '/network', label: 'Network', icon: Users2 },
+      { to: '/portfolio', label: 'Portfolio', icon: BookOpen },
     ],
   },
   {
-    section: 'Mind',
+    section: 'MIND',
     items: [
       { to: '/focus', label: 'Focus System', icon: Target },
       { to: '/decisions', label: 'Decisions', icon: GitFork },
-      { to: '/ideas', label: 'Idea Parking', icon: Lightbulb },
       { to: '/failures', label: 'Failure Log', icon: FlameKindling },
     ],
   },
   {
-    section: 'Review',
-    items: [
-      { to: '/future-me', label: 'Future Me', icon: Telescope },
-      { to: '/review', label: 'Weekly Review', icon: RefreshCw },
-      { to: '/review/monthly', label: 'Monthly Review', icon: BarChart2 },
-    ],
-  },
-  {
-    section: 'System',
+    section: 'SYSTEM',
     items: [
       { to: '/settings', label: 'Settings', icon: Settings },
     ],
-  },
+  }
 ];
 
 export function Sidebar() {

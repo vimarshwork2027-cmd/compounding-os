@@ -233,6 +233,9 @@ export const DEFAULT_STORE: AppStore = {
   thisWeekendFeatures: [],
   dailyChallenge: null,
   aiApiKey: '',
+  library: [],
+  seasons: [],
+  dailyCurriculum: null,
 };
 
 // ─── Weakness Detection ───────────────────────────────────────────────────────
@@ -249,6 +252,19 @@ export function detectWeaknesses(activities: AppStore['activities']): AppStore['
   });
 
   const weaknesses: AppStore['weaknesses'] = [];
+
+  // Weak Communication (New Bottleneck)
+  const commActivities = last14Days.filter(a => a.type === 'COMMUNICATE');
+  const designActivities = last14Days.filter(a => a.skills.includes('visual_design') || a.type === 'MAKE');
+  if (designActivities.length > commActivities.length * 3 && commActivities.length < 3) {
+    weaknesses.push({
+      type: 'weak_communication',
+      severity: 'high',
+      evidence: `You are strong at visual design but your interview answers and storytelling are lagging. You've done ${designActivities.length} design sessions vs ${commActivities.length} communication sessions.`,
+      detectedAt: now.toISOString(),
+      dismissed: false,
+    });
+  }
 
   // Consumption addiction
   const consumptionActivities = last7Days.filter(a => a.isConsumption);
@@ -319,21 +335,61 @@ export function detectWeaknesses(activities: AppStore['activities']): AppStore['
 // ─── Compounding Score ────────────────────────────────────────────────────────
 
 export function calculateCompoundingScore(store: AppStore): number {
-  const evidenceCount = store.evidenceCards.length;
-  const shippedCount = store.activities.filter(a => a.type === 'SHIP').length;
-  const realWorldCount = store.activities.filter(a =>
-    a.skills.includes('user_research') || a.skills.includes('cold_outreach') || a.type === 'SHIP'
-  ).length;
-  const streak = store.profile.currentStreak;
+  const last30Days = store.activities.filter(a => (Date.now() - new Date(a.timestamp).getTime()) < 30 * 24 * 60 * 60 * 1000);
+  
+  // 1. Skill growth (25%) - XP gained in last 30 days
+  const xpGrowth = Math.min(25, (last30Days.reduce((sum, a) => sum + a.xp, 0) / 1000) * 25);
+  
+  // 2. Real-world output (25%) - Ships
+  const ships = last30Days.filter(a => a.type === 'SHIP').length;
+  const outputScore = Math.min(25, (ships / 4) * 25);
+  
+  // 3. Evidence (20%) - Evidence generated
+  const evidenceCount = last30Days.filter(a => a.evidence?.url || a.evidence?.metric).length;
+  const evidenceScore = Math.min(20, (evidenceCount / 5) * 20);
+  
+  // 4. Consistency (15%) - Active days in last 30
+  const activeDays = new Set(last30Days.map(a => a.timestamp.slice(0, 10))).size;
+  const consistencyScore = Math.min(15, (activeDays / 20) * 15);
+  
+  // 5. Discomfort (10%) - Boring challenges or uncomfortable skills
+  const boringCount = last30Days.filter(a => a.boringChallenge).length;
+  const discomfortScore = Math.min(10, (boringCount / 4) * 10);
+  
+  // 6. Reflection (5%) - Reflections/Teardowns
+  const reflects = last30Days.filter(a => a.type === 'REFLECT').length;
+  const reflectionScore = Math.min(5, (reflects / 4) * 5);
 
-  // Weighted formula emphasizing real-world impact
-  return Math.round(
-    (evidenceCount * 5) +
-    (shippedCount * 3) +
-    (realWorldCount * 2) +
-    (streak * 1) +
-    (store.profile.totalXP / 10)
-  );
+  return Math.round(xpGrowth + outputScore + evidenceScore + consistencyScore + discomfortScore + reflectionScore);
+}
+
+// ─── Bottleneck & Balance ─────────────────────────────────────────────────────
+
+export function getPrimaryBottleneck(weaknesses: AppStore['weaknesses']) {
+  if (weaknesses.length === 0) return null;
+  // Sort by severity (high > medium > low)
+  return [...weaknesses].sort((a, b) => {
+    const s = { high: 3, medium: 2, low: 1 };
+    return s[b.severity] - s[a.severity];
+  })[0];
+}
+
+export function getDailyBalance(activities: AppStore['activities'], date: Date) {
+  const dateStr = date.toISOString().slice(0, 10);
+  const todaysActs = activities.filter(a => a.timestamp.startsWith(dateStr));
+
+  // Time estimates (using XP as a proxy for minutes if duration is missing)
+  const getMinutes = (type: string, isConsume: boolean) => 
+    todaysActs.filter(a => a.type === type && a.isConsumption === isConsume).reduce((sum, a) => sum + (a.xp * 2), 0);
+
+  return {
+    learn: getMinutes('THINK', true),
+    make: getMinutes('MAKE', false),
+    communicate: getMinutes('COMMUNICATE', false),
+    ship: getMinutes('SHIP', false),
+    connect: todaysActs.filter(a => a.skills.includes('cold_outreach') || a.skills.includes('user_research')).reduce((sum, a) => sum + a.xp * 2, 0),
+    reflect: getMinutes('REFLECT', false),
+  };
 }
 
 // ─── Future Me Projections ────────────────────────────────────────────────────

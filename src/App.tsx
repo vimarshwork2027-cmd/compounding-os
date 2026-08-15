@@ -17,11 +17,15 @@ import { FocusSystem } from './pages/FocusSystem';
 import { Decisions } from './pages/Decisions';
 import { IdeaParkingLot } from './pages/IdeaParkingLot';
 import { FailureLog } from './pages/FailureLog';
-import { FutureMe } from './pages/FutureMe';
 import { WeeklyReview } from './pages/WeeklyReview';
 import { MonthlyReview } from './pages/MonthlyReview';
 import { AICoach } from './pages/AICoach';
 import { Settings } from './pages/Settings';
+
+// New V2 Pages
+import { LearningPath } from './pages/LearningPath';
+import { Library } from './pages/Library';
+import { Seasons } from './pages/Seasons';
 
 export default function App() {
   return (
@@ -32,6 +36,9 @@ export default function App() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/learn" element={<LearningPath />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/seasons" element={<Seasons />} />
               <Route path="/log" element={<LogActivity />} />
               <Route path="/mirror" element={<Mirror />} />
               <Route path="/skills" element={<SkillTree />} />
@@ -41,13 +48,13 @@ export default function App() {
               <Route path="/product-gym" element={<ProductGym />} />
               <Route path="/boring-mode" element={<BoringMode />} />
               <Route path="/thisweekend" element={<ThisWeekend />} />
+              <Route path="/projects" element={<IdeaParkingLot />} />
               <Route path="/career" element={<CareerFunnel />} />
               <Route path="/network" element={<Network />} />
+              <Route path="/portfolio" element={<EvidenceVault />} /> {/* Reused evidence vault as portfolio for now */}
               <Route path="/focus" element={<FocusSystem />} />
               <Route path="/decisions" element={<Decisions />} />
-              <Route path="/ideas" element={<IdeaParkingLot />} />
               <Route path="/failures" element={<FailureLog />} />
-              <Route path="/future-me" element={<FutureMe />} />
               <Route path="/review" element={<WeeklyReview />} />
               <Route path="/review/monthly" element={<MonthlyReview />} />
               <Route path="/coach" element={<AICoach />} />
